@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 #Input:
 # - X			: N 1-dimensinal data points (a 1-by-N vector)
 # - mu_init 	: initial means of K Gaussian components (a 1-by-K vector)
-# - sigmasq_init: initial variances of K Gaussian components (a 1-by-K vector)
+# - sigmasq_init: initial variance of K Gaussian components (a 1-by-K vector)
 # - wt_init		: initial weights of K Gaussian components (a 1-by-K vector that sums to 1)
 # - its 		: number of iterations
 #Output:
 # - mu 			: means of Gaussian components (a 1-by-K vector)
-# - sigmasq     : variances of Gaussian components (a 1-by-K vector)
+# - sigmasq     : variance of Gaussian components (a 1-by-K vector)
 # - wt 			: weights of Gaussian components (a 1-by-K vector that sums to 1)
 # - L			: log likelihood
 def gmmest(X, mu_init, sigmasq_init, wt_init, its):
@@ -34,10 +34,10 @@ def gmmest(X, mu_init, sigmasq_init, wt_init, its):
 			# r of Gaussian i for each data
 			responsibilities = []
 			for x in X:
-				top = stats.norm(mu[i],sigmasq[i]).pdf(x) * wt[i]
+				top = stats.norm(mu[i],sigmasq[i]**0.5).pdf(x) * wt[i]
 				bottom = 0
 				for ii in range(len(wt)):
-					bottom += stats.norm(mu[ii],sigmasq[ii]).pdf(x) * wt[ii]
+					bottom += stats.norm(mu[ii],sigmasq[ii]**0.5).pdf(x) * wt[ii]
 				responsibilities.append(float(top) / float(bottom))
 
 			#Big R for Gaussian i
@@ -53,7 +53,7 @@ def gmmest(X, mu_init, sigmasq_init, wt_init, its):
 				sum_mu += responsibilities[index] * X[index]
 				sum_var += responsibilities[index] * ((X[index]-mu[i])**2)
 			new_mu[i] = float(sum_mu) / float(responsibility)		
-			new_sigmasq[i] = (float(sum_var) / float(responsibility)) ** 0.5
+			new_sigmasq[i] = float(sum_var) / float(responsibility)
 
 		#update mu, sigmasq, and weights
 		mu = np.copy(new_mu)
@@ -78,7 +78,7 @@ def result_prob(X, mu, sigmasq, wt):
 	for x in X:
 		point_prob = 0
 		for i in range(len(wt)):
-			point_prob += (stats.norm(mu[i],sigmasq[i]).pdf(x) * wt[i])
+			point_prob += (stats.norm(mu[i],sigmasq[i]**0.5).pdf(x) * wt[i])
 
 		L += math.log(point_prob)
 
@@ -89,7 +89,7 @@ def result_prob(X, mu, sigmasq, wt):
 def build_models1(X):
 	#by observing the hist of data
 	mu_init = np.array([7, 25])
-	sigmasq_init = np.array([5, 3])
+	sigmasq_init = np.array([25, 9])
 	wt_init = np.array([0.7, 0.3])
 	its = 20
 
@@ -103,7 +103,7 @@ def build_models1(X):
 
 def build_models2(X):
 	mu_init = [-13, -4, 50]
-	sigmasq_init = [5, 14, 30] 
+	sigmasq_init = [25, 196, 900] 
 	wt_init = [0.2, 0.4, 0.4]
 	its = 20
 
